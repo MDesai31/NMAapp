@@ -1,3 +1,11 @@
+#Setup instructions
+npm install express body-parser mysql2 axios react-router-dom bcrypt cors jsonwebtoken
+npx create-react-app client
+
+To run:
+server: node server.js
+react app: npm start
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
