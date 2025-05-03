@@ -57,6 +57,28 @@ app.post('/login', (req, res)=>{
     })
 })
 
+app.get('/api/patients', async (req, res) => {
+    try {
+        const query = 'SELECT * FROM patient';
+        db.query(query, async (err, results)=>{
+            if (err){
+                console.log(err.message)
+                return res.status(500).send(err)
+            }
+
+            if(results.length === 0){
+                return res.status(400).send("No Patients!")
+            }else{
+                res.send(results)
+            }
+        })
+        // const patients = await executeQuery(query);
+        // res.json(patients);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch patients' });
+    }
+});
+
 app.listen(port, () =>{
     console.log('Server running on port 9000')
 })

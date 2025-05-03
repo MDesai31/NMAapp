@@ -3,15 +3,19 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Register from './components/register';
 import Login from './components/login';
 import Home from './components/home';
+import PatientManagement from './components/patient';
+import ViewPatients from './components/patient_management/view_patient';
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to='/login' replace/>} />
+        <Route path="/" element={<Navigate to='/home' replace/>} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path='/home' element={<Home />} />
+        <Route path='/patient' element={<PatientManagement />} />
+        <Route path='/view_patient' element={<ViewPatients />} />
       </Routes>
     </Router>
   );
