@@ -1,0 +1,44 @@
+.staff-management-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Align items to the start (top) */
+    min-height: 100vh;
+    padding-top: 20px; /* Add some padding at the top */
+    background-color: #f0f0f0;
+  }
+  
+  .page-title {
+    font-size: 2.2em;
+    color: #2c3e50;
+    margin-bottom: 30px;
+  }
+  
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+    gap: 20px;
+    width: 90%; /* Take up most of the container width */
+    max-width: 1200px; /* Maximum width for the grid */
+  }
+  
+  .option-button {
+    padding: 15px 30px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    text-align: center; /* Center the text within the button */
+    height: 100px; /* Give buttons a consistent height */
+    display: flex; /* For centering the text vertically */
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .option-button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }  

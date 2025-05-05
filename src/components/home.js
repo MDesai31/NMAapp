@@ -10,7 +10,7 @@ function Home() {
       <div className="options-container">
         <button className="option-button" onClick={() => navigate('/patient')}>Patient Management</button>
         <button className="option-button">In-patient Management</button>
-        <button className="option-button">Clinic Staff Management</button>
+        <button className="option-button" onClick={() => navigate('/staff')}>Clinic Staff Management</button>
       </div>
     </div>
   );
