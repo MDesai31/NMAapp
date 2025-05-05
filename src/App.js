@@ -9,6 +9,8 @@ import StaffManagement from './components/staff';
 import ViewStaffs from './components/staff_management/view_staff';
 import EditAddShift from './components/staff_management/editAddShift'; // Ensure this import is added
 import AddStaff from './components/staff_management/addStaff';
+import InsertPatient from './components/patient_management/insert_patient';
+import PreviousDiagnosis from './components/patient_management/previous_diagnosis';
 
 const App = () => {
   return (
@@ -26,6 +28,8 @@ const App = () => {
         <Route path='/addStaff' element={<AddStaff />} />
 
 
+        <Route path='/insert_patient' element={<InsertPatient />} />
+        <Route path='/previous_diagnosis' element={<PreviousDiagnosis />} />
       </Routes>
     </Router>
   );
