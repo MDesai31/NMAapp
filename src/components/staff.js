@@ -8,10 +8,8 @@ const navigate = useNavigate()
     <div className="staff-management-container">
       <h1 className="page-title">Staff Management</h1>
       <div className="options-grid">
-        <button className="option-button" onClick={() => navigate('/addStaff')}>Insert New Staff</button>
-        <button className="option-button" onClick={() => navigate('/view_staff')}>View Staff Information</button>
-        <button className="option-button">Remove Staff</button>
-        <button className="option-button">Schedule job shift</button>
+        <button className="option-button" onClick={() => navigate('/addStaff')}>Add New Staff</button>
+        <button className="option-button" onClick={() => navigate('/view_staff')}>View-Modify Staff Information</button>
       </div>
     </div>
   );

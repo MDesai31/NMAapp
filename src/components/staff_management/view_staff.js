@@ -47,17 +47,20 @@ const ViewStaffs = () => {
             : staffs;
     }, [staffs, selectedType]);
 
-    const handleEditShift = (staff) => {
-        navigate(`/editAddShift/${staff.Employee_ID}`);
+    const handleEditShift = (staffs) => {
+        navigate(`/editAddShift/${staffs.Employee_ID}`);
     };
 
     const handleRemove = async (employeeId) => {
+        console.log('🔍 Attempting to delete staff with Employee_ID:', employeeId);
+
         if (!window.confirm('Are you sure you want to delete this staff member?')) return;
 
         try {
             const response = await fetch(`http://localhost:9000/api/removestaff/${employeeId}`, {
                 method: 'DELETE',
             });
+            console.log('📡 Server responded with status:', response.status);
 
             if (response.ok) {
                 setStaffs(prev => prev.filter(s => s.Employee_ID !== employeeId));

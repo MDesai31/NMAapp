@@ -11,6 +11,8 @@ import EditAddShift from './components/staff_management/editAddShift'; // Ensure
 import AddStaff from './components/staff_management/addStaff';
 import InsertPatient from './components/patient_management/insert_patient';
 import PreviousDiagnosis from './components/patient_management/previous_diagnosis';
+import InPatientManagement from './components/inpatient';
+import ViewRoom from './components/inpatient_management/view_room';
 
 const App = () => {
   return (
@@ -26,6 +28,8 @@ const App = () => {
         <Route path='/view_staff' element={<ViewStaffs />} />
         <Route path="/editAddShift/:id" element={<EditAddShift />} />
         <Route path='/addStaff' element={<AddStaff />} />
+        <Route path='/inpatient' element={<InPatientManagement />} />
+        <Route path='/view_room' element={<ViewRoom />} />
 
 
         <Route path='/insert_patient' element={<InsertPatient />} />

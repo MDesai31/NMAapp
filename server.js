@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql2');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -19,19 +18,15 @@ const db = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
 });
 
-// Register new user (with hashed password)
+// --------------------------- AUTH ROUTES ---------------------------
+
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
-
     try {
-        // Hash the password before storing it
         const hashedPassword = await bcrypt.hash(password, 10);
-
         const sql = "INSERT INTO authentication (username, password) VALUES (?, ?)";
         db.query(sql, [username, hashedPassword], (err) => {
-            if (err) {
-                return res.status(500).send(err);
-            }
+            if (err) return res.status(500).send(err);
             res.send("User registered successfully.");
         });
     } catch (err) {
@@ -39,262 +34,194 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Login user and generate JWT token
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     const sql = "SELECT * FROM authentication WHERE username = ?";
 
     db.query(sql, [username], async (err, results) => {
-        if (err) {
-            console.log(err.message);
-            return res.status(500).send(err);
-        }
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(400).send("Invalid username!");
 
-        if (results.length === 0) {
-            return res.status(400).send("Invalid username!");
-        }
-
-        // Compare the input password with the hashed password
         const match = await bcrypt.compare(password, results[0].password);
+        if (!match) return res.status(401).send("Invalid password");
 
-        if (!match) {
-            return res.status(401).send("Invalid password");
-        }
-
-        // Generate a JWT token
-        const token = jwt.sign({ id: results[0].id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
-
-        res.json({ token });
+        res.json({ message: "Login successful" });
     });
 });
 
-// Get all patients
-app.get('/api/patients', async (req, res) => {
-    try {
-        const query = 'SELECT * FROM patient';
-        db.query(query, (err, results) => {
-            if (err) {
-                console.log(err.message);
-                return res.status(500).send(err);
-            }
+// --------------------------- PATIENT ROUTES ---------------------------
 
-            if (results.length === 0) {
-                return res.status(400).send("No Patients found!");
-            } else {
-                res.send(results);
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch patients' });
-    }
-});
-
-// Get all staff
-app.get('/api/staffs', async (req, res) => {
-    try {
-        const query = 'SELECT * FROM personnel';
-        db.query(query, (err, results) => {
-            if (err) {
-                console.log(err.message);
-                return res.status(500).send(err);
-            }
-
-            if (results.length === 0) {
-                return res.status(400).send("No Staff found!");
-            } else {
-                res.send(results);
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch staff' });
-    }
-});
-
-// Get a specific staff by Employee_ID
-app.get('/api/staffs/:id', async (req, res) => {
-    const employeeId = req.params.id;
-
-    try {
-        const query = 'SELECT * FROM personnel WHERE Employee_ID = ?';
-        db.query(query, [employeeId], (err, results) => {
-            if (err) {
-                console.log(err.message);
-                return res.status(500).send(err);
-            }
-
-            if (results.length === 0) {
-                return res.status(404).send("Staff not found");
-            }
-
-            res.send(results[0]);
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch staff' });
-    }
-});
-
-// Update staff's job shift
-app.put('/api/staffs/:id/shift', async (req, res) => {
-    const employeeId = req.params.id;
-    const { Job_Shift } = req.body;
-
-    if (!Job_Shift) {
-        return res.status(400).json({ message: 'Job_Shift is required' });
-    }
-
-    try {
-        const sql = 'UPDATE personnel SET Job_Shift = ? WHERE Employee_ID = ?';
-        db.query(sql, [Job_Shift, employeeId], (err, results) => {
-            if (err) {
-                console.log(err.message);
-                return res.status(500).send(err);
-            }
-
-            if (results.affectedRows === 0) {
-                return res.status(404).send('Staff not found');
-            }
-
-            res.send('Job shift updated successfully');
-        });
-    } catch (err) {
-        console.error('Error updating shift:', err);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-
-// Route to add a new staff
-app.post('/api/addStaff', (req, res) => {
-    const { Employee_ID,Name,Gender,Address,Phone_Number,SSN,Personnel_Type,Is_Chief_Of_Staff,Job_Shift
-    } = req.body;
-  
-    const query = `INSERT INTO personnel (Employee_ID,Name,Gender,Address,Phone_Number,SSN,Personnel_Type,Is_Chief_Of_Staff,Job_Shift
-) VALUES (?, ?, ?, ?, ?,?,?,?,?)`;
-  
-    // Execute the query
-    db.query(query, [Employee_ID,Name,Gender,Address,Phone_Number,SSN,Personnel_Type,Is_Chief_Of_Staff,Job_Shift], (err, result) => {
-      if (err) {
-        console.error('Error inserting staff:', err);
-        return res.status(500).json({ message: 'Error adding staff.', error: err.message });
-      }
-      res.status(201).json({ message: 'Staff added successfully!', staffId: result.insertId });
-    });
-  });
-  
-
-  // Delete staff by Employee_ID
-app.delete('/api/removeStaff/:id', (req, res) => {
-    const employeeId = req.params.id;
-
-    const sql = 'DELETE FROM personnel WHERE Employee_ID = ?';
-
-    db.query(sql, [employeeId], (err, result) => {
-        if (err) {
-            console.error('Error deleting staff:', err);
-            return res.status(500).json({ error: 'Database error' });
-        }
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Staff not found' });
-        }
-
-        res.status(200).json({ message: 'Staff deleted successfully' });
+app.get('/api/patients', (req, res) => {
+    db.query('SELECT * FROM patient', (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).send("No Patients found!");
+        res.send(results);
     });
 });
 
-  // Start the server
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-app.post('/api/insert_patient', async (req, res) => {
-    try {
-        const {
-            Name,
-            Gender,
-            Date_of_birth,
-            Address,
-            Phone_Number,
-            SSN,
-            Consultation_Req,
-            Hospitalization_Req,
-        } = req.body;
-        
-        // Basic validation
-        if (!Name || !Gender || !Date_of_birth || !Address || !Phone_Number || !SSN) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
+app.post('/api/insert_patient', (req, res) => {
+    const { Name, Gender, Date_of_birth, Address, Phone_Number, SSN, Consultation_Req, Hospitalization_Req } = req.body;
+    if (!Name || !Gender || !Date_of_birth || !Address || !Phone_Number || !SSN)
+        return res.status(400).json({ error: 'All fields are required' });
 
-        const query = `
-            INSERT INTO Patient (
-                Name, Gender, Date_of_birth, Address, Phone_Number, SSN, Consultation_Req, Hospitalization_Req
-            ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?
-            )
-        `;
-        const params = [
-            Name,
-            Gender,
-            Date_of_birth,
-            Address,
-            Phone_Number,
-            SSN,
-            Consultation_Req,
-            Hospitalization_Req,
-        ];
-        // console.log(params)
-        db.query(query, params, (err)=>{
-            if(err){
-                return res.status(500).send(err)
-            }
-            res.send("Patient added successfully.")
-        })
-        // await executeQuery(query, params);
-        // res.status(201).json({ message: 'Patient added successfully' });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to add patient', details: error.message });
-    }
+    const query = `INSERT INTO Patient (Name, Gender, Date_of_birth, Address, Phone_Number, SSN, Consultation_Req, Hospitalization_Req) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [Name, Gender, Date_of_birth, Address, Phone_Number, SSN, Consultation_Req, Hospitalization_Req];
+    
+    db.query(query, params, (err) => {
+        if (err) return res.status(500).send(err);
+        res.send("Patient added successfully.");
+    });
 });
 
-// API endpoint to get a patient's previous diagnoses
-app.get('/api/diagnoses/:patientName', async (req, res) => {
+app.get('/api/diagnoses/:patientName', (req, res) => {
     const patientName = req.params.patientName;
-    try {
-        // Query to find the patient and their diagnoses
-        const query = `
-            SELECT
-                i.Description AS illnessDescription,
-                pm.HDL,
-                pm.LDL,
-                pm.Triglyceride,
-                pm.Heart_Risk_Category,
-                pm.Cholesterol_HDL_Ratio,
-                pm.Total_Cholesterol,
-                pm.Blood_Type,
-                pm.Blood_Sugar
-            FROM Patient p
-            JOIN Patient_Illness pi ON p.Patient_ID = pi.Patient_ID
-            JOIN Illness i ON pi.Illness_ID = i.Illness_ID
-            LEFT JOIN Patient_Medical pm ON p.Patient_ID = pm.Patient_ID  -- Join Patient_Medical
-            WHERE p.Name = ?
-        `;
-        const params = [patientName];
-        db.query(query, params, async (err, results)=>{
-            if(err){
-                return res.status(500).send(err)
-            }
-            if(results.length == 0){
-                return res.status(404).json({ error: `No diagnoses found for patient: ${patientName}` });
-            }
-            console.log(results)
-            res.json(results);
-            // res.send("Patient added successfully.")
-        })
-        
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch diagnoses', details: error.message });
-    }
+    const query = `
+        SELECT i.Description AS illnessDescription, pm.HDL, pm.LDL, pm.Triglyceride,
+               pm.Heart_Risk_Category, pm.Cholesterol_HDL_Ratio, pm.Total_Cholesterol,
+               pm.Blood_Type, pm.Blood_Sugar
+        FROM Patient p
+        JOIN Patient_Illness pi ON p.Patient_ID = pi.Patient_ID
+        JOIN Illness i ON pi.Illness_ID = i.Illness_ID
+        LEFT JOIN Patient_Medical pm ON p.Patient_ID = pm.Patient_ID
+        WHERE p.Name = ?`;
+    db.query(query, [patientName], (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).json({ error: `No diagnoses found for patient: ${patientName}` });
+        res.json(results);
+    });
 });
 
-app.listen(port, () =>{
-    console.log('Server running on port 9000')
-})
+// --------------------------- STAFF ROUTES ---------------------------
+
+app.get('/api/staffs', (req, res) => {
+    db.query('SELECT * FROM personnel', (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).send("No staff found!");
+        res.send(results);
+    });
+});
+
+app.get('/api/staff/:id', (req, res) => {
+    const id = req.params.id;
+    db.query('SELECT * FROM personnel WHERE Employee_ID = ?', [id], (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).send("Staff not found");
+        res.send(results[0]);
+    });
+});
+
+app.post('/api/addstaff', (req, res) => {
+    const { Name, Gender, Address, Phone_Number, SSN, Personnel_Type, Is_Chief_Of_Staff, Job_Shift } = req.body;
+    const query = `INSERT INTO personnel (Name, Gender, Address, Phone_Number, SSN, Personnel_Type, Is_Chief_Of_Staff, Job_Shift) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    db.query(query, [Name, Gender, Address, Phone_Number, SSN, Personnel_Type, Is_Chief_Of_Staff, Job_Shift], (err, result) => {
+        if (err) return res.status(500).json({ message: 'Error adding staff.', error: err.message });
+        res.status(201).json({ message: 'Staff added successfully!', staffId: result.insertId });
+    });
+});
+
+app.put('/api/staff/:id/job-shift', (req, res) => {
+    const { Job_Shift } = req.body;
+    if (!Job_Shift) return res.status(400).json({ message: 'Job_Shift is required' });
+
+    db.query('UPDATE personnel SET Job_Shift = ? WHERE Employee_ID = ?', [Job_Shift, req.params.id], (err, result) => {
+        if (err) return res.status(500).send(err);
+        if (result.affectedRows === 0) return res.status(404).send('Staff not found');
+        res.send('Job shift updated successfully');
+    });
+});
+
+
+
+app.delete('/api/removestaff/:id', (req, res) => {
+    const staffId = req.params.id;
+    console.log(`🧹 Attempting to remove staff with ID: ${staffId}`);
+
+    // Delete from nurse
+    db.query('DELETE FROM nurse WHERE Employee_id = ?', [staffId], (err, result1) => {
+        if (err) console.error('❌ Error deleting from nurse:', err);
+
+        // Delete from physician
+        db.query('DELETE FROM physician WHERE Employee_id = ?', [staffId], (err2, result2) => {
+            if (err2) console.error('❌ Error deleting from physician:', err2);
+
+            // Delete from surgeon
+            db.query('DELETE FROM surgeon WHERE Employee_id = ?', [staffId], (err3, result3) => {
+                if (err3) console.error('❌ Error deleting from surgeon:', err3);
+
+                // Finally, delete from personnel
+                db.query('DELETE FROM personnel WHERE Employee_ID = ?', [staffId], (err4, result4) => {
+                    if (err4) {
+                        console.error('❌ Error deleting from personnel:', err4);
+                        return res.status(500).json({ error: 'Failed to delete personnel' });
+                    }
+                        // Delete from staff_shifts
+                        db.query('DELETE FROM staff_shifts WHERE staff_id = ?', [staffId], (err5, result5) => {
+                            if (err5) console.error('❌ Error deleting from staff_shifts:', err5);
+                            
+                    if (result4.affectedRows === 0) {
+                        return res.status(404).json({ message: 'Staff not found' });
+                    }
+
+                    console.log('✅ Staff successfully deleted');
+                    res.status(200).json({ message: 'Staff deleted successfully' });
+                });
+            });
+            });
+        });
+    });
+});
+
+
+// --------------------------- ROOM ROUTES ---------------------------
+
+app.get('/api/rooms', (req, res) => {
+    db.query('SELECT * FROM Room_Arrangement', (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).send("No Room found!");
+        res.send(results);
+    });
+});
+
+// --------------------------- SHIFT ROUTES ---------------------------
+
+app.get('/api/staff/:id/getshift-schedule', (req, res) => {
+    db.query('SELECT shift_date, shift_type FROM staff_shifts WHERE staff_id = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: 'Error fetching staff shift' });
+        res.status(200).json(results); // <-- direct array
+    });
+});
+
+app.post('/api/staff/:id/Addshift-schedule', (req, res) => {
+    const { shift_type, shift_date } = req.body;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(shift_date)) {
+        return res.status(400).json({ message: 'Invalid date format (expected YYYY-MM-DD)' });
+    }
+
+    db.query('INSERT INTO staff_shifts (Staff_ID, shift_type, shift_date) VALUES (?, ?, ?)', [req.params.id, shift_type, shift_date], (err) => {
+        if (err) return res.status(500).json({ message: 'Internal server error' });
+        res.status(201).json({ message: 'Shift added successfully' });
+    });
+});
+
+app.get('/api/shifts', (req, res) => {
+    db.query('SELECT DISTINCT job_shift FROM staff_shifts', (err, results) => {
+        if (err) return res.status(500).json({ error: 'Error fetching shifts' });
+        const shifts = results.map(row => row.job_shift);
+        res.status(200).json(shifts);
+    });
+});
+
+app.get('/api/shifts/:shift/staffs', (req, res) => {
+    db.query('SELECT * FROM staff_shifts WHERE LOWER(shift_type) = LOWER(?)', [req.params.shift], (err, results) => {
+        if (err) return res.status(500).json({ error: 'Error fetching staff for shift' });
+        res.status(200).json(results);
+    });
+});
+
+
+
+// --------------------------- SERVER START ---------------------------
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
