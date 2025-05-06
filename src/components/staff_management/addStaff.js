@@ -16,7 +16,6 @@ import {
 
 const AddStaff = () => {
   // State hooks
-  const [employeeId, setEmployeeId] = useState('');
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
   const [address, setAddress] = useState('');
@@ -36,7 +35,6 @@ const AddStaff = () => {
 
     // Prepare payload
     const payload = {
-      Employee_ID: employeeId,
       Name: name,
       Gender: gender,
       Address: address,
@@ -71,17 +69,6 @@ const AddStaff = () => {
       <Typography variant="h4" gutterBottom>Add New Staff</Typography>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
-          {/* Employee ID */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Employee ID"
-              variant="outlined"
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-            />
-          </Grid>
-
           {/* Name */}
           <Grid item xs={12} sm={6}>
             <TextField

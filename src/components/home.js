@@ -9,7 +9,7 @@ function Home() {
       <h1 className="home-title">Welcome to Newark Medical Associates</h1>
       <div className="options-container">
         <button className="option-button" onClick={() => navigate('/patient')}>Patient Management</button>
-        <button className="option-button">In-patient Management</button>
+        <button className="option-button" onClick={() => navigate('/inpatient')}>In-patient Management</button>
         <button className="option-button" onClick={() => navigate('/staff')}>Clinic Staff Management</button>
       </div>
     </div>

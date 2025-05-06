@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     TextField,
@@ -7,6 +7,11 @@ import {
     Typography,
     CircularProgress,
     MenuItem,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell,
 } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -19,50 +24,83 @@ const EditAddShift = () => {
     const navigate = useNavigate();
 
     const [staff, setStaff] = useState(null);
-    const [newShift, setNewShift] = useState('');
+    const [newShift, setNewShift] = useState('Day');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [shiftHistory, setShiftHistory] = useState([]);
+
+    const fetchStaff = useCallback(async () => {
+        try {
+            const response = await fetch(`http://localhost:9000/api/staff/${id}`);
+            if (!response.ok) throw new Error('Staff not found');
+            const data = await response.json();
+            setStaff(data);
+            setLoading(false);
+        } catch (err) {
+            console.error(err);
+            alert('Failed to fetch staff info.');
+            setLoading(false);
+        }
+    }, [id]);
+
+    const fetchShiftHistory = useCallback(async () => {
+        try {
+            const response = await fetch(`http://localhost:9000/api/staff/${id}/getshift-schedule`);
+            if (!response.ok) throw new Error('Failed to fetch shift history');
+            const data = await response.json();
+            setShiftHistory(data);
+        } catch (err) {
+            console.error(err);
+            alert('Could not fetch shift history.');
+        }
+    }, [id]);
 
     useEffect(() => {
-        const fetchStaff = async () => {
-            try {
-                const response = await fetch(`http://localhost:9000/api/staffs/${id}`);
-                if (!response.ok) throw new Error('Staff not found');
-                const data = await response.json();
-                setStaff(data);
-                setNewShift(data.Job_Shift || '');
-                setLoading(false);
-            } catch (err) {
-                console.error(err);
-                alert('Failed to fetch staff info.');
-                setLoading(false);
-            }
-        };
         fetchStaff();
-    }, [id]);
+        fetchShiftHistory();
+    }, [fetchStaff, fetchShiftHistory]);
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            const response = await fetch(`http://localhost:9000/api/staffs/${id}/shift`, {
-                method: 'PUT',
+            const response = await fetch(`http://localhost:9000/api/staff/${id}/Addshift-schedule`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    Job_Shift: newShift,
-                    Date: selectedDate.toISOString().split('T')[0], // Optional: adapt if backend expects this
+                    shift_type: newShift,
+                    shift_date: selectedDate.toISOString().split('T')[0],
                 }),
             });
 
-            if (!response.ok) throw new Error('Failed to update shift');
+            if (!response.ok) throw new Error('Failed to save shift');
 
-            alert('Shift updated successfully!');
-            navigate('/view_staff');
+            alert('Shift added successfully!');
+            fetchShiftHistory();
         } catch (err) {
             console.error(err);
-            alert('Error updating shift.');
+            alert('Error saving shift.');
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDeleteShift = async (shiftDate) => {
+        if (!window.confirm('Are you sure you want to delete this shift?')) return;
+        
+        try {
+            const response = await fetch(
+                `http://localhost:9000/api/staff/${id}/deleteshift?shift_date=${shiftDate}`,
+                { method: 'DELETE' }
+            );
+
+            if (!response.ok) throw new Error('Failed to delete shift');
+
+            alert('Shift deleted successfully!');
+            fetchShiftHistory();
+        } catch (err) {
+            console.error(err);
+            alert('Error deleting shift.');
         }
     };
 
@@ -83,12 +121,12 @@ const EditAddShift = () => {
     }
 
     return (
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             <Paper elevation={3} className="p-6">
                 <Typography variant="h5" className="mb-4 font-semibold text-gray-800">
-                    Staff Details for {staff.Name} <br /><br />
+                    Staff Information
                 </Typography>
-
+                <Typography><strong>Name:</strong> {staff.Name}</Typography>
                 <Typography><strong>Employee ID:</strong> {staff.Employee_ID}</Typography>
                 <Typography><strong>SSN:</strong> {staff.SSN}</Typography>
                 <Typography><strong>Gender:</strong> {staff.Gender}</Typography>
@@ -96,10 +134,9 @@ const EditAddShift = () => {
                 <Typography><strong>Phone Number:</strong> {staff.Phone_Number}</Typography>
                 <Typography><strong>Personnel Type:</strong> {staff.Personnel_Type}</Typography>
                 <Typography><strong>Chief of Staff:</strong> {staff.Is_Chief_Of_Staff ? 'Yes' : 'No'}</Typography>
-                <Typography className="mb-4"><strong>Current Job Shift:</strong> {staff.Job_Shift || 'N/A'}</Typography>
 
-                <Typography variant="h5" className="mb-4 font-semibold text-gray-800">
-                    <br /><br />Edit/Add Shift for {staff.Name}<br /><br />
+                <Typography variant="h6" className="mt-6 mb-2 font-semibold text-gray-800">
+                    <b>Add Shift</b>
                 </Typography>
 
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -115,11 +152,11 @@ const EditAddShift = () => {
 
                 <TextField
                     select
-                    label="New Job Shift"
+                    label="Select Job Shift"
                     value={newShift}
                     onChange={(e) => setNewShift(e.target.value)}
                     margin="normal"
-                    variant="outlined"
+                    size="small"
                     fullWidth
                 >
                     {shiftOptions.map((option) => (
@@ -150,6 +187,55 @@ const EditAddShift = () => {
                     </Button>
                 </div>
             </Paper>
+
+            <Paper elevation={3} className="p-6 mt-6">
+                <Typography variant="h6" className="mb-4 font-semibold text-gray-800">
+                    Shift History
+                </Typography>
+                {shiftHistory.length > 0 ? (
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Shift Date</TableCell>
+                                <TableCell>Shift Type</TableCell>
+                                <TableCell>Action</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+    {shiftHistory.map((staff_shifts, index) => {
+        const shiftDateISO = new Date(staff_shifts.shift_date).toISOString().split('T')[0];
+
+        return (
+            <TableRow key={index}>
+                <TableCell>
+                    {new Date(staff_shifts.shift_date).toLocaleDateString()}
+                </TableCell>
+                <TableCell>{staff_shifts.shift_type}</TableCell>
+                <TableCell>
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDeleteShift(shiftDateISO)}
+                    >
+                        Delete
+                    </Button>
+                </TableCell>
+            </TableRow>
+        );
+    })}
+</TableBody>
+                    </Table>
+                ) : (
+                    <Typography>No shifts scheduled yet.</Typography>
+                )}
+            </Paper>
+
+            <div className="mt-4 md:mt-6">
+                <Button variant="outlined" onClick={() => navigate('/staff')}>
+                    Back to Staff Management
+                </Button>
+            </div>
         </div>
     );
 };
