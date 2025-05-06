@@ -202,10 +202,6 @@ app.delete('/api/removeStaff/:id', (req, res) => {
     });
 });
 
-  // Start the server
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
 app.post('/api/insert_patient', async (req, res) => {
     try {
         const {
