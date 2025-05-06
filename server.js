@@ -218,7 +218,23 @@ app.get('/api/shifts/:shift/staffs', (req, res) => {
     });
 });
 
+app.delete('/api/staff/:id/deleteshift', (req, res) => {
+    const { id } = req.params;
+    const { shift_date } = req.query;
 
+    const query = `
+        DELETE FROM staff_shifts
+        WHERE staff_id = ? AND shift_date = ?
+    `;
+
+    db.query(query, [id, shift_date], (err, result) => {
+        if (err) {
+            console.error('❌ Failed to delete shift:', err);
+            return res.status(500).json({ error: 'Failed to delete shift' });
+        }
+        res.status(200).json({ message: 'Shift deleted successfully' });
+    });
+});
 
 // --------------------------- SERVER START ---------------------------
 

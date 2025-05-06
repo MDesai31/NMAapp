@@ -24,7 +24,7 @@ const EditAddShift = () => {
     const navigate = useNavigate();
 
     const [staff, setStaff] = useState(null);
-    const [newShift, setNewShift] = useState('Day'); // Set default shift to 'Day'
+    const [newShift, setNewShift] = useState('Day');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -59,7 +59,7 @@ const EditAddShift = () => {
     useEffect(() => {
         fetchStaff();
         fetchShiftHistory();
-    }, [fetchStaff, fetchShiftHistory]); // Add dependencies here
+    }, [fetchStaff, fetchShiftHistory]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -76,12 +76,31 @@ const EditAddShift = () => {
             if (!response.ok) throw new Error('Failed to save shift');
 
             alert('Shift added successfully!');
-            fetchShiftHistory(); // Fetch shift history after saving
+            fetchShiftHistory();
         } catch (err) {
             console.error(err);
             alert('Error saving shift.');
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDeleteShift = async (shiftDate) => {
+        if (!window.confirm('Are you sure you want to delete this shift?')) return;
+        
+        try {
+            const response = await fetch(
+                `http://localhost:9000/api/staff/${id}/deleteshift?shift_date=${shiftDate}`,
+                { method: 'DELETE' }
+            );
+
+            if (!response.ok) throw new Error('Failed to delete shift');
+
+            alert('Shift deleted successfully!');
+            fetchShiftHistory();
+        } catch (err) {
+            console.error(err);
+            alert('Error deleting shift.');
         }
     };
 
@@ -115,9 +134,9 @@ const EditAddShift = () => {
                 <Typography><strong>Phone Number:</strong> {staff.Phone_Number}</Typography>
                 <Typography><strong>Personnel Type:</strong> {staff.Personnel_Type}</Typography>
                 <Typography><strong>Chief of Staff:</strong> {staff.Is_Chief_Of_Staff ? 'Yes' : 'No'}</Typography>
-                <br></br>
+
                 <Typography variant="h6" className="mt-6 mb-2 font-semibold text-gray-800">
-                  <b> Add Shift  </b> <br></br>
+                    <b>Add Shift</b>
                 </Typography>
 
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -138,6 +157,7 @@ const EditAddShift = () => {
                     onChange={(e) => setNewShift(e.target.value)}
                     margin="normal"
                     size="small"
+                    fullWidth
                 >
                     {shiftOptions.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -167,7 +187,7 @@ const EditAddShift = () => {
                     </Button>
                 </div>
             </Paper>
-            
+
             <Paper elevation={3} className="p-6 mt-6">
                 <Typography variant="h6" className="mb-4 font-semibold text-gray-800">
                     Shift History
@@ -178,16 +198,33 @@ const EditAddShift = () => {
                             <TableRow>
                                 <TableCell>Shift Date</TableCell>
                                 <TableCell>Shift Type</TableCell>
+                                <TableCell>Action</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {shiftHistory.map((staff_shifts, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{new Date(staff_shifts.shift_date).toLocaleDateString()}</TableCell>
-                                    <TableCell>{staff_shifts.shift_type}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
+    {shiftHistory.map((staff_shifts, index) => {
+        const shiftDateISO = new Date(staff_shifts.shift_date).toISOString().split('T')[0];
+
+        return (
+            <TableRow key={index}>
+                <TableCell>
+                    {new Date(staff_shifts.shift_date).toLocaleDateString()}
+                </TableCell>
+                <TableCell>{staff_shifts.shift_type}</TableCell>
+                <TableCell>
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDeleteShift(shiftDateISO)}
+                    >
+                        Delete
+                    </Button>
+                </TableCell>
+            </TableRow>
+        );
+    })}
+</TableBody>
                     </Table>
                 ) : (
                     <Typography>No shifts scheduled yet.</Typography>
@@ -195,13 +232,11 @@ const EditAddShift = () => {
             </Paper>
 
             <div className="mt-4 md:mt-6">
-                            <Button variant="outlined" onClick={() => navigate('/staff')}>
-                                Back to Staff Management
-                            </Button>
-                        </div>
+                <Button variant="outlined" onClick={() => navigate('/staff')}>
+                    Back to Staff Management
+                </Button>
+            </div>
         </div>
-
-        
     );
 };
 
