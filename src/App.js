@@ -13,6 +13,10 @@ import InsertPatient from './components/patient_management/insert_patient';
 import PreviousDiagnosis from './components/patient_management/previous_diagnosis';
 import InPatientManagement from './components/inpatient';
 import ViewRoom from './components/inpatient_management/view_room';
+import SchedulePerDay from './components/patient_management/schedule_per_day';
+import SchedulePerDoctor from './components/patient_management/schedule_per_doctor';
+import ScheduleAppointment from './components/patient_management/schedule_appointment';
+import ScheduledSurgery from './components/inpatient_management/scheduled_surgery';
 
 const App = () => {
   return (
@@ -34,6 +38,10 @@ const App = () => {
 
         <Route path='/insert_patient' element={<InsertPatient />} />
         <Route path='/previous_diagnosis' element={<PreviousDiagnosis />} />
+        <Route path='/schedule_per_day' element={<SchedulePerDay />} />
+        <Route path='/schedule_per_doctor' element={<SchedulePerDoctor />} />
+        <Route path='/schedule_appointment' element={<ScheduleAppointment />} />
+        <Route path='/scheduled_surgery' element={<ScheduledSurgery />} />
       </Routes>
     </Router>
   );

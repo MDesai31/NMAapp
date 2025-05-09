@@ -369,28 +369,48 @@ VALUES
     (9, 9, 1, 50, 140, 120, 'Moderate', 2.7, 195, 'O+', 130),
     (10, 10, 10, 60, 135, 110, 'High', 3.1, 205, 'B+', 140);
 
-CREATE TABLE Consultation_Schedule (
-    Consultation_ID INT PRIMARY KEY AUTO_INCREMENT,
-    Physician_ID INT,
-    Patient_ID INT,
-    Date DATE,
-    Surgery_Required BOOLEAN,
-    Medication_Required BOOLEAN,
-    FOREIGN KEY (Physician_ID) REFERENCES Physician(Physician_ID),
-    FOREIGN KEY (Patient_ID) REFERENCES Patient(Patient_ID)
+
+-- Table to store time slots
+CREATE TABLE Time_Slots (
+    slot_number INT PRIMARY KEY AUTO_INCREMENT,
+    time TIME NOT NULL,
+    shift_type VARCHAR(20) NOT NULL,
+    UNIQUE (time, shift_type)
 );
 
-INSERT INTO Consultation_Schedule (Physician_ID, Patient_ID, Date, Surgery_Required, Medication_Required)
+-- Populate Time_Slots (Example data - adjust as needed)
+INSERT INTO Time_Slots (time, shift_type) VALUES
+('09:00:00', 'Day'),
+('10:00:00', 'Day'),
+('11:00:00', 'Day'),
+('13:00:00', 'Night'),
+('14:00:00', 'Night'),
+('15:00:00', 'Night');
+
+-- Consultation Schedule Table
+CREATE TABLE Consultation_Schedule (
+    Consultation_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Patient_ID INT,
+    Physician_ID INT,
+    Date DATE,
+    Time_Slot_Number INT,
+    FOREIGN KEY (Patient_ID) REFERENCES Patient(Patient_ID),
+    FOREIGN KEY (Physician_ID) REFERENCES Physician(Physician_ID),
+    FOREIGN KEY (Time_Slot_Number) REFERENCES Time_Slots(slot_number)
+);
+
+INSERT INTO Consultation_Schedule (Patient_ID, Physician_ID, Date, Time_Slot_Number)
 VALUES
-    (1, 1, '2025-04-20', TRUE, TRUE),
-    (2, 2, '2025-04-21', FALSE, TRUE),
-    (3, 3, '2025-04-22', TRUE, FALSE),
-    (1, 4, '2025-04-23', FALSE, FALSE),
-    (2, 5, '2025-04-24', TRUE, TRUE),
-    (3, 6, '2025-04-25', FALSE, TRUE),
-    (1, 7, '2025-04-26', TRUE, FALSE),
-    (2, 8, '2025-04-27', FALSE, FALSE),
-    (3, 9, '2025-04-28', TRUE, TRUE);
+    (1, 1, '2025-05-01', 1),
+    (2, 2, '2025-05-02', 2),
+    (3, 3, '2025-05-03', 3),
+    (4, 1, '2025-05-04', 4),
+    (5, 2, '2025-05-05', 5),
+    (6, 3, '2025-05-06', 6),
+    (7, 1, '2025-05-07', 1),
+    (8, 2, '2025-05-08', 2),
+    (9, 3, '2025-05-09', 3),
+    (10, 1, '2025-05-10', 4);
 
 CREATE TABLE Surgery_Skills (
     Surgery_Skill_ID INT PRIMARY KEY AUTO_INCREMENT,
@@ -422,7 +442,9 @@ CREATE TABLE Assist_Surgery (
 
 INSERT INTO Assist_Surgery (Schedule_ID, Nurse_ID)
 VALUES
+    (1, 1),  -- Schedule_ID 1 requires 3 nurses (from Surgery_Schedule)
     (1, 2),
+    (1, 3),
     (2, 4),
     (3, 1),
     (4, 3),
@@ -610,3 +632,64 @@ VALUES
     (8, 2),
     (9, 3),
     (10, 1);
+
+CREATE TABLE staff_shifts (
+    Employee_ID INT,
+    shift_date DATE,
+    shift_type VARCHAR(20),
+    FOREIGN KEY (Employee_ID) REFERENCES personnel(Employee_ID) ON DELETE CASCADE
+);
+
+INSERT INTO staff_shifts (Employee_ID, shift_date, shift_type)
+VALUES
+    -- Physicians Staggered
+    (1, '2025-05-06', 'Day'),  -- Physician 1
+    (5, '2025-05-06', 'Night'),
+    (8, '2025-05-07', 'Day'),
+    (1, '2025-05-07', 'Night'),
+    (3, '2025-05-08', 'Day'),
+    (6, '2025-05-08', 'Night'),
+    (10, '2025-05-09', 'Day'),
+    (3, '2025-05-09', 'Night'),
+    (1, '2025-05-10', 'Day'),
+    (5, '2025-05-10', 'Night'),
+    (8, '2025-05-11', 'Day'),
+    (1, '2025-05-11', 'Night'),
+    (3, '2025-05-12', 'Day'),
+    (6, '2025-05-12', 'Night'),
+    (10, '2025-05-13', 'Day'),
+    (3, '2025-05-13', 'Night'),
+
+    -- Nurses on same shift
+    (2, '2025-05-06', 'Day'),
+    (4, '2025-05-06', 'Day'),
+    (7, '2025-05-06', 'Night'),
+    (9, '2025-05-06', 'Night'),
+    (2, '2025-05-07', 'Day'),
+    (4, '2025-05-07', 'Day'),
+    (7, '2025-05-07', 'Night'),
+    (9, '2025-05-07', 'Night'),
+    (2, '2025-05-08', 'Day'),
+    (4, '2025-05-08', 'Day'),
+    (7, '2025-05-08', 'Night'),
+    (9, '2025-05-08', 'Night'),
+    (2, '2025-05-09', 'Day'),
+    (4, '2025-05-09', 'Day'),
+    (7, '2025-05-09', 'Night'),
+    (9, '2025-05-09', 'Night'),
+    (2, '2025-05-10', 'Day'),
+    (4, '2025-05-10', 'Day'),
+    (7, '2025-05-10', 'Night'),
+    (9, '2025-05-10', 'Night'),
+    (2, '2025-05-11', 'Day'),
+    (4, '2025-05-11', 'Day'),
+    (7, '2025-05-11', 'Night'),
+    (9, '2025-05-11', 'Night'),
+    (2, '2025-05-12', 'Day'),
+    (4, '2025-05-12', 'Day'),
+    (7, '2025-05-12', 'Night'),
+    (9, '2025-05-12', 'Night'),
+    (2, '2025-05-13', 'Day'),
+    (4, '2025-05-13', 'Day'),
+    (7, '2025-05-13', 'Night'),
+    (9, '2025-05-13', 'Night');
