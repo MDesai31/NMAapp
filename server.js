@@ -930,7 +930,7 @@ app.get('/api/surgerySchedule', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch surgery schedule', details: error.message });
     }
 });
-
+});
 // --------------------------- SERVER START ---------------------------
 
 app.listen(port, () => {
