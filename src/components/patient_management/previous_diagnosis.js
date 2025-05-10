@@ -91,6 +91,7 @@ const PreviousDiagnosis = () => {
                         <TableHead>
                             <TableRow>
                                 <TableCell className="font-bold">Illness Description</TableCell>
+                                <TableCell className="font-bold">Allergy Description</TableCell>
                                 <TableCell className="font-bold">HDL</TableCell>
                                 <TableCell className="font-bold">LDL</TableCell>
                                 <TableCell className="font-bold">Triglyceride</TableCell>
@@ -105,6 +106,7 @@ const PreviousDiagnosis = () => {
                             {diagnoses.map((diagnosis) => (
                                 <TableRow key={diagnosis.illnessDescription}>
                                     <TableCell>{diagnosis.illnessDescription}</TableCell>
+                                    <TableCell>{diagnosis.AllergyDescription}</TableCell>
                                     <TableCell>{diagnosis.HDL}</TableCell>
                                     <TableCell>{diagnosis.LDL}</TableCell>
                                     <TableCell>{diagnosis.Triglyceride}</TableCell>

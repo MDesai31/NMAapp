@@ -76,13 +76,23 @@ app.post('/api/insert_patient', (req, res) => {
 app.get('/api/diagnoses/:patientName', (req, res) => {
     const patientName = req.params.patientName;
     const query = `
-        SELECT i.Description AS illnessDescription, pm.HDL, pm.LDL, pm.Triglyceride,
-               pm.Heart_Risk_Category, pm.Cholesterol_HDL_Ratio, pm.Total_Cholesterol,
-               pm.Blood_Type, pm.Blood_Sugar
+        SELECT
+            i.Description AS illnessDescription,
+            a.Description as AllergyDescription,
+            pm.HDL,
+            pm.LDL,
+            pm.Triglyceride,
+            pm.Heart_Risk_Category,
+            pm.Cholesterol_HDL_Ratio,
+            pm.Total_Cholesterol,
+            pm.Blood_Type,
+            pm.Blood_Sugar
         FROM Patient p
         JOIN Patient_Illness pi ON p.Patient_ID = pi.Patient_ID
         JOIN Illness i ON pi.Illness_ID = i.Illness_ID
         LEFT JOIN Patient_Medical pm ON p.Patient_ID = pm.Patient_ID
+        LEFT JOIN Patient_Allergies pa ON p.Patient_ID = pa.Patient_ID
+        LEFT JOIN Allergies a ON pa.Allergy_ID = a.Allergy_ID
         WHERE p.Name = ?`;
     db.query(query, [patientName], (err, results) => {
         if (err) return res.status(500).send(err);
@@ -538,6 +548,185 @@ app.get('/api/surgerySchedule', async (req, res) => {
         // res.json(schedule);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch surgery schedule', details: error.message });
+    }
+});
+
+// Get list of in-patients
+app.get('/api/in-patients', async (req, res) => {
+    try {
+      const query = 'SELECT Patient_ID FROM In_patient';
+    //   const inPatients = await executeQuery(query);
+    db.query(query, params, (err, results) => {
+        if(err){
+            console.log(err)
+        }
+        res.json(results);
+    });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch in-patients" });
+    }
+});
+
+//get qualified surgeons
+app.get('/api/surgeons/surgeryType/:surgeryType', (req, res) => {
+    const surgeryType = req.params.surgeryType;
+
+    const query = `
+        SELECT
+            s.Surgeon_ID,
+            p.Name
+        FROM
+            Surgeon s
+        JOIN
+            Personnel p ON s.Employee_ID = p.Employee_ID
+        WHERE
+            s.Surgeon_ID IN (
+            SELECT
+                ss.Surgeon_ID
+            FROM
+                Surgeon_Skills ss
+            WHERE
+                ss.Surgery_ID = ?
+            );
+    `;
+
+    db.query(query, [surgeryType], (err, results) => {
+        if (err) {
+            console.error('Error fetching surgeons by surgery type:', err);
+            res.status(500).json({ error: 'Failed to fetch surgeons' });
+        } else {
+            console.log(results)
+            res.json(results);
+        }
+    });
+});
+
+// Get nurses for a surgery type
+app.get('/api/nurses/surgeryType/:surgeryType', async (req, res) => {
+    const surgeryType = parseInt(req.params.surgeryType);
+    // console.log("surgery type:", surgeryType)
+    try {
+        // First, get the Nurse_IDs who have skills for the given surgery type
+        const nurseSkillsQuery = `
+            SELECT n.Nurse_ID 
+            FROM Nurse N JOIN Nurse_Surgery_Assignment nsa ON n.Nurse_ID = nsa.Nurse_ID 
+            WHERE nsa.surgery_ID = ?;
+        `;
+        let nurseSkillsResult = null;
+        db.query(nurseSkillsQuery, [surgeryType], (err, results) => {
+            if(err){
+                console.log(err)
+            }
+            // console.log(results)
+            nurseSkillsResult = results;
+        
+            const validNurseIds = nurseSkillsResult.map((row) => row.Nurse_ID);
+
+            // Then, get the nurses details based on the Nurse_IDs
+            const nursesQuery = `SELECT n.Nurse_ID, p.Name FROM Nurse n JOIN Personnel p ON n.Employee_ID = p.Employee_ID WHERE n.Nurse_ID IN ?;`;
+            // const nursesResult = await executeQuery(nursesQuery, [[validNurseIds]]);
+            db.query(nursesQuery, [[validNurseIds]], (err, results) => {
+                if(err){
+                    console.log(err)
+                }
+                // console.log(results)
+                res.json(results);
+            });
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch nurses for surgery type' });
+    }
+});
+
+//get surgery skills
+app.get('/api/surgery-skills', async (req, res) => {
+    try {
+        const query = 'SELECT Surgery_ID, Surgery_Skill_ID FROM Surgery_Skills_Required';
+        db.query(query, (err, results) => {
+            if(err){
+                console.log(err)
+            }
+            console.log(results)
+            res.json(results);
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch surgery skills' });
+    }
+});
+
+//get surgeon skills
+app.get('/api/surgeon-skills', async (req, res) => {
+    try {
+        const query = 'SELECT Surgeon_ID, Surgery_ID FROM Surgeon_Skills';
+        // const surgeonSkills = await executeQuery(query);
+        // res.json(surgeonSkills);
+        db.query(query, (err, results) => {
+            if(err){
+                console.log(err)
+            }
+            // console.log(results)
+            res.json(results);
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch surgeon skills' });
+    }
+});
+
+//get nurse surgery skills
+app.get('/api/nurse-surgery-skills', async (req, res) => {
+     try {
+        const query = 'SELECT Nurse_ID, Surgery_ID FROM Nurse_Surgery_Skills';
+        db.query(query, (err, results) => {
+            if(err){
+                console.log(err)
+            }
+            // console.log(results)
+            res.json(results);
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch nurse skills' });
+    }
+});
+
+// Schedule a surgery
+app.post('/api/schedule-a-surgery', async (req, res) => {
+    const { surgeryId, patientId, surgeonId, date, operationTheater, nurseIds } = req.body;
+    
+    try {
+        // 1.  Insert into Surgery_Schedule
+        const scheduleQuery = `
+            INSERT INTO Surgery_Schedule (Surgery_ID, Patient_ID, Surgeon_ID, Date, Operation_theatre)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+        console.log('inside post function')    
+        // const scheduleResult: any = await executeQuery(scheduleQuery, [surgeryId, patientId, surgeonId, numberOfNursesRequired, date, operationTheater]);
+        let scheduleId = null;
+        db.query(scheduleQuery, [surgeryId, patientId, surgeonId, date, operationTheater], (err, results) => {
+            if(err){
+                console.log(err)
+            }
+            scheduleId = results.insertId
+            // console.log(scheduleId)
+            
+            // 2. Insert into Assist_Surgery
+            const assistSurgeryQuery = `
+                INSERT INTO Assist_Surgery (Schedule_ID, Nurse_ID)
+                VALUES (?, ?)
+            `;
+            // Use a loop to insert each nurse
+            for (const nurseId of nurseIds) {
+                // await executeQuery(assistSurgeryQuery, [scheduleId, nurseId]);
+                db.query(assistSurgeryQuery, [scheduleId, nurseId], (err, results) => {
+                    if(err){
+                        console.log(err)
+                    }
+                });       
+            }
+
+            res.status(200).json({ message: 'Surgery scheduled successfully' });
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to schedule surgery' });
     }
 });
 

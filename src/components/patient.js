@@ -17,7 +17,7 @@ const navigate = useNavigate()
       </div>
 
       <div className="mt-4 md:mt-6">
-        <button
+        <button 
           variant="outlined"
           onClick={() => navigate('/home')}
         >

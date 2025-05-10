@@ -88,7 +88,8 @@ CREATE TABLE Surgery (
     Surgery_ID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(100),
     Category VARCHAR(50),
-    Anatomical_Location VARCHAR(100)
+    Anatomical_Location VARCHAR(100),
+    Number_of_Nurses_required INT
 );
 
 CREATE TABLE Patient (
@@ -137,7 +138,6 @@ CREATE TABLE Surgery_Schedule (
     Surgery_ID INT,
     Patient_ID INT,
     Surgeon_ID INT,
-    Number_of_Nurses_required INT,
     Date DATE,
     Operation_theatre VARCHAR(50),
     FOREIGN KEY (Surgery_ID) REFERENCES Surgery(Surgery_ID),
@@ -205,14 +205,6 @@ CREATE TABLE Assist_Surgery (
     FOREIGN KEY (Nurse_ID) REFERENCES Nurse(Nurse_ID)
 );
 
-CREATE TABLE Nurse_Surgery_Skills (
-    Nurse_ID INT,
-    Surgery_ID INT,
-    PRIMARY KEY (Nurse_ID, Surgery_ID),
-    FOREIGN KEY (Nurse_ID) REFERENCES Nurse(Nurse_ID),
-    FOREIGN KEY (Surgery_ID) REFERENCES Surgery(Surgery_ID)
-);
-
 CREATE TABLE Nurse_Surgery_Assignment (
     Nurse_ID INT,
     Surgery_ID INT,
@@ -220,7 +212,6 @@ CREATE TABLE Nurse_Surgery_Assignment (
     FOREIGN KEY (Nurse_ID) REFERENCES Nurse(Nurse_ID),
     FOREIGN KEY (Surgery_ID) REFERENCES Surgery(Surgery_ID)
 );
-
 
 CREATE TABLE Surgery_Skills_Required (
     Surgery_ID INT,
@@ -284,7 +275,6 @@ CREATE TABLE staff_shifts (
     shift_type VARCHAR(20),
     FOREIGN KEY (Employee_ID) REFERENCES personnel(Employee_ID) ON DELETE CASCADE
 );
-
 
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Triggers
@@ -414,7 +404,10 @@ VALUES
     ('Nurse Linda Green', 'F', '890 Oak Blvd, Boston, MA', '555-8888', '789-01-2345', 'Nurse', 0, 'Night'),
     ('Dr. James Turner', 'M', '234 Cedar Blvd, Phoenix, AZ', '555-9999', '890-12-3456', 'Physician', 0, 'Night'),
     ('Nurse Emma Scott', 'F', '123 Birch Rd, Denver, CO', '555-0000', '901-23-4567', 'Nurse', 0, 'Day'),
-    ('Dr. Michael Harris', 'M', '456 Pine St, Salt Lake City, UT', '555-1111', '012-34-5678', 'Surgeon', 0, 'Day');
+    ('Dr. Michael Harris', 'M', '456 Pine St, Salt Lake City, UT', '555-1111', '012-34-5678', 'Surgeon', 0, 'Day'),
+    ('Nurse Emily Carter', 'F', '789 Pine Ln, Austin, TX', '555-9876', '987-65-4321', 'Nurse', 0, 'Day'),
+    ('Nurse David Rodriguez', 'M', '894 James St, Los Angeles, CA', '897-4578', '123-87-9864', 'Nurse', 0, 'Night'),
+    ('Nurse Thelma Louise', 'F', '4697 St.Jose Blvd, Orlando, FL', '164-9000', '972-46-6431', 'Nurse', 0, 'Day');
 
 INSERT INTO Physician (Employee_ID, Specialty, Salary, Has_Ownership)
 VALUES
@@ -424,10 +417,14 @@ VALUES
 
 INSERT INTO Nurse (Employee_ID, Grade, YOE, Salary)
 VALUES
-    (2, 'A', 5, 75000.00),  -- Nurse Sarah Lee
-    (4, 'B', 3, 70000.00),  -- Nurse Julia Carter
-    (7, 'A', 7, 80000.00),  -- Nurse Linda Green
-    (9, 'C', 2, 68000.00);  -- Nurse Emma Scott
+    (2, 'Senior', 5, 75000.00),
+    (4, 'Senior', 3, 70000.00),
+    (7, 'Senior', 7, 80000.00),
+    (9, 'Junior', 2, 68000.00),
+    (11, 'Junior', 5, 60000.00),
+    (12, 'Junior', 2, 35000.00),
+    (13, 'Senior', 7, 70000.00);
+
 
 INSERT INTO Surgeon (Employee_ID, Specialty, Contract_type, Contract_length)
 VALUES
@@ -435,18 +432,18 @@ VALUES
     (6, 'Neurosurgery', 'Part-Time', 12),   -- Dr. David Smith
     (10, 'Orthopedic', 'Full-Time', 36);     -- Dr. Michael Harris
 
-INSERT INTO Surgery (Name, Category, Anatomical_Location)
+INSERT INTO Surgery (Name, Category, Anatomical_Location, Number_of_Nurses_required)
 VALUES
-    ('Appendectomy', 'H', 'Abdomen'),
-    ('Knee Arthroscopy', 'O', 'Knee'),
-    ('Cataract Surgery', 'O', 'Eye'),
-    ('Coronary Artery Bypass Grafting', 'H', 'Heart'),
-    ('Hip Replacement', 'H', 'Hip'),
-    ('Tonsillectomy', 'O', 'Throat'),
-    ('Hernia Repair', 'H', 'Abdomen'),
-    ('Laparoscopic Gallbladder Surgery', 'O', 'Gallbladder'),
-    ('Spinal Fusion', 'H', 'Spine'),
-    ('Mastectomy', 'H', 'Breast');
+    ('Appendectomy', 'H', 'Abdomen', 3),
+    ('Knee Arthroscopy', 'O', 'Knee', 2),
+    ('Cataract Surgery', 'O', 'Eye', 4),
+    ('Coronary Artery Bypass Grafting', 'H', 'Heart', 3),
+    ('Hip Replacement', 'H', 'Hip', 2),
+    ('Tonsillectomy', 'O', 'Throat', 4),
+    ('Hernia Repair', 'H', 'Abdomen', 3),
+    ('Laparoscopic Gallbladder Surgery', 'O', 'Gallbladder', 2),
+    ('Spinal Fusion', 'H', 'Spine', 4),
+    ('Mastectomy', 'H', 'Breast', 3);
 
 INSERT INTO Patient (Name, Gender, Date_of_birth, Address, Phone_Number, SSN, Consultation_Req, Hospitalization_Req, Primary_Physician_ID)
 VALUES
@@ -487,18 +484,18 @@ VALUES
     (9, 9, 3, 9, '300mg', 'Every 8 hours'),
     (10, 10, 1, 10, '50mg', 'Once daily');
 
-INSERT INTO Surgery_Schedule (Surgery_ID, Patient_ID, Surgeon_ID, Number_of_Nurses_required, Date, Operation_theatre)
+INSERT INTO Surgery_Schedule (Surgery_ID, Patient_ID, Surgeon_ID, Date, Operation_theatre)
 VALUES
-    (1, 1, 1, 3, '2025-05-01', 'OT-101'),
-    (2, 2, 2, 2, '2025-05-02', 'OT-102'),
-    (3, 3, 3, 4, '2025-05-03', 'OT-103'),
-    (4, 4, 1, 3, '2025-05-04', 'OT-101'),
-    (5, 5, 2, 2, '2025-05-05', 'OT-102'),
-    (6, 6, 3, 4, '2025-05-06', 'OT-103'),
-    (7, 7, 1, 3, '2025-05-07', 'OT-101'),
-    (8, 8, 2, 2, '2025-05-08', 'OT-102'),
-    (9, 9, 3, 4, '2025-05-09', 'OT-103'),
-    (10, 10, 1, 3, '2025-05-10', 'OT-101');
+    (1, 1, 1, '2025-05-01', 'OT-101'),
+    (2, 2, 2, '2025-05-02', 'OT-102'),
+    (3, 3, 3, '2025-05-03', 'OT-103'),
+    (4, 4, 1, '2025-05-04', 'OT-101'),
+    (5, 5, 2, '2025-05-05', 'OT-102'),
+    (6, 6, 3, '2025-05-06', 'OT-103'),
+    (7, 7, 1, '2025-05-07', 'OT-101'),
+    (8, 8, 2, '2025-05-08', 'OT-102'),
+    (9, 9, 3, '2025-05-09', 'OT-103'),
+    (10, 10, 1, '2025-05-10', 'OT-101');
 
 INSERT INTO In_patient (Patient_ID, Nurse_ID, Admission_Date, Nursing_Unit, Room_No, Bed_No, Wing)
 VALUES
@@ -554,58 +551,66 @@ VALUES
     (1, 1),
     (1, 2),
     (1, 3),
-    (2, 2),
     (2, 4),
+    (2, 5),
+    (3, 6),
     (3, 1),
     (3, 2),
     (3, 3),
-    (3, 4),
-    (4, 1),
-    (4, 2),
-    (4, 3),
+    (4, 4),
+    (4, 5),
+    (4, 6),
     (5, 1),
     (5, 2),
-    (6, 1),
-    (6, 2),
     (6, 3),
     (6, 4),
+    (6, 5),
+    (6, 6),
     (7, 1),
     (7, 2),
     (7, 3),
-    (8, 2),
     (8, 4),
+    (8, 5),
+    (9, 6),
     (9, 1),
     (9, 2),
     (9, 3),
-    (9, 4),
-    (10, 1),
-    (10, 2),
-    (10, 3);
-
-
-INSERT INTO Nurse_Surgery_Skills (Nurse_ID, Surgery_ID)
-VALUES
-    (1, 1),  
-    (1, 7),  
-    (2, 2), 
-    (2, 3),  
-    (3, 4),  
-    (3, 5),  
-    (4, 6), 
-    (4, 8);
+    (10, 4),
+    (10, 5),
+    (10, 6);
 
 INSERT INTO Nurse_Surgery_Assignment (Nurse_ID, Surgery_ID)
 VALUES
     (1, 1),
-    (2, 2),
-    (3, 4),
-    (4, 6),
-    (1, 7),
+    (2, 1),
+    (3, 1),
+    (4, 2),
+    (5, 2),
+    (1, 3),
     (2, 3),
-    (3, 5),
+    (3, 3),
+    (6, 3),
+    (4, 4),
+    (5, 4),
+    (6, 4),
+    (1, 5),
+    (2, 5),
+    (3, 6),
+    (4, 6),
+    (5, 6),
+    (6, 6),
+    (1, 7),
+    (2, 7),
+    (3, 7),
     (4, 8),
+    (5, 8),
     (1, 9),
-    (2, 10);
+    (2, 9),
+    (3, 9),
+    (6, 9),
+    (4, 10),
+    (5, 10),
+    (6, 10);
 
 INSERT INTO Surgery_Skills_Required (Surgery_ID, Surgery_Skill_ID)
 VALUES
@@ -711,12 +716,52 @@ VALUES
 INSERT INTO staff_shifts (Employee_ID, shift_date, shift_type)
 VALUES
     (1, '2025-05-06', 'Day'),
-    (2, '2025-05-06', 'Day'),
-    (3, '2025-05-06', 'Day'),
-    (4, '2025-05-06', 'Day'),
     (5, '2025-05-06', 'Night'),
-    (6, '2025-05-06', 'Night'),
-    (7, '2025-05-06', 'Night'),
     (8, '2025-05-07', 'Day'),
-    (9, '2025-05-07', 'Day'),
-    (10, '2025-05-07', 'Day');
+    (1, '2025-05-07', 'Night'),
+    (3, '2025-05-08', 'Day'),
+    (6, '2025-05-08', 'Night'),
+    (10, '2025-05-09', 'Day'),
+    (3, '2025-05-09', 'Night'),
+    (1, '2025-05-10', 'Day'),
+    (5, '2025-05-10', 'Night'),
+    (8, '2025-05-11', 'Day'),
+    (1, '2025-05-11', 'Night'),
+    (3, '2025-05-12', 'Day'),
+    (6, '2025-05-12', 'Night'),
+    (10, '2025-05-13', 'Day'),
+    (3, '2025-05-13', 'Night'),
+
+    -- Nurses on same shift
+    (2, '2025-05-06', 'Day'),
+    (4, '2025-05-06', 'Day'),
+    (7, '2025-05-06', 'Night'),
+    (9, '2025-05-06', 'Night'),
+    (2, '2025-05-07', 'Day'),
+    (4, '2025-05-07', 'Day'),
+    (7, '2025-05-07', 'Night'),
+    (9, '2025-05-07', 'Night'),
+    (2, '2025-05-08', 'Day'),
+    (4, '2025-05-08', 'Day'),
+    (7, '2025-05-08', 'Night'),
+    (9, '2025-05-08', 'Night'),
+    (2, '2025-05-09', 'Day'),
+    (4, '2025-05-09', 'Day'),
+    (7, '2025-05-09', 'Night'),
+    (9, '2025-05-09', 'Night'),
+    (2, '2025-05-10', 'Day'),
+    (4, '2025-05-10', 'Day'),
+    (7, '2025-05-10', 'Night'),
+    (9, '2025-05-10', 'Night'),
+    (2, '2025-05-11', 'Day'),
+    (4, '2025-05-11', 'Day'),
+    (7, '2025-05-11', 'Night'),
+    (9, '2025-05-11', 'Night'),
+    (2, '2025-05-12', 'Day'),
+    (4, '2025-05-12', 'Day'),
+    (7, '2025-05-12', 'Night'),
+    (9, '2025-05-12', 'Night'),
+    (2, '2025-05-13', 'Day'),
+    (4, '2025-05-13', 'Day'),
+    (7, '2025-05-13', 'Night'),
+    (9, '2025-05-13', 'Night');

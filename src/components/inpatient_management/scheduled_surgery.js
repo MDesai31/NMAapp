@@ -23,6 +23,13 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { DateFnsUtils } from '@mui/lab'; // Import the DateFns adapter
 import { format } from 'date-fns';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { styled } from '@mui/material/styles'; // Import styled
+
+// Extend FormControl and override the width.
+const FullWidthFormControl = styled(FormControl)({
+    width: '20%', // Make the FormControl take full width
+    minWidth: '200px', // Ensure it has a minimum width
+});
 
 
 const ScheduledSurgery = () => {
@@ -100,7 +107,7 @@ const ScheduledSurgery = () => {
                             <TextField {...params} className="w-full sm:w-auto" placeholder="YYYY-MM-DD" />
                         )}
                     />
-                     <FormControl className="w-full sm:w-auto">
+                     <FullWidthFormControl className="w-full sm:w-auto">
                         <InputLabel id="surgeon-name-label">Surgeon Name</InputLabel>
                         <Select
                             labelId="surgeon-name-label"
@@ -117,7 +124,7 @@ const ScheduledSurgery = () => {
                                 </MenuItem>
                             ))}
                         </Select>
-                    </FormControl>
+                    </FullWidthFormControl>
                     <TextField
                         label="Patient Name"
                         value={patientName}

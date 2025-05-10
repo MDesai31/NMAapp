@@ -13,7 +13,13 @@ import {
 import { Paper } from '@mui/material';
 import { Alert, AlertTitle, AlertDescription } from '@mui/material';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText} from '@mui/material';
+import { styled } from '@mui/material/styles'; // Import styled
 
+// Extend FormControl and override the width.
+const FullWidthFormControl = styled(FormControl)({
+    width: '20%', // Make the FormControl take full width
+    minWidth: '200px', // Ensure it has a minimum width
+});
 
 const SchedulePerDoctor = () => {
     const [selectedDoctorName, setSelectedDoctorName] = useState('');
@@ -84,7 +90,7 @@ const SchedulePerDoctor = () => {
             <h1 className="text-2xl md:text-3xl font-semibold mb-4 md:mb-6 text-gray-800">Doctor Schedule</h1>
 
             <div className="mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <FormControl className="w-full sm:w-auto" error={!!error && !selectedDoctorName}>
+                <FullWidthFormControl className="w-full sm:w-auto" error={!!error && !selectedDoctorName}>
                     <InputLabel id="doctor-name-label">Doctor Name</InputLabel>
                     <Select
                         labelId="doctor-name-label"
@@ -102,7 +108,7 @@ const SchedulePerDoctor = () => {
                         ))}
                     </Select>
                     {!!error && !selectedDoctorName && <FormHelperText>Please select a doctor</FormHelperText>}
-                </FormControl>
+                </FullWidthFormControl>
                 <Button onClick={handleSearch} variant="contained" disabled={loading} className="w-full sm:w-auto">
                     {loading ? 'Loading...' : 'Search'}
                 </Button>

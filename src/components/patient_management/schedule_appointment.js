@@ -23,6 +23,13 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { DateFnsUtils } from '@mui/lab'; // Import the DateFns adapter
 import { format } from 'date-fns';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { styled } from '@mui/material/styles'; // Import styled
+
+// Extend FormControl and override the width.
+const FullWidthFormControl = styled(FormControl)({
+    width: '20%', // Make the FormControl take full width
+    minWidth: '200px', // Ensure it has a minimum width
+});
 
 const ScheduleAppointment = () => {
     const [patientName, setPatientName] = useState('');
@@ -196,7 +203,7 @@ const ScheduleAppointment = () => {
                 {patientExists === true && (
                     <>
                         <div className="mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <FormControl className="w-full sm:w-auto">
+                            <FullWidthFormControl className="w-full sm:w-auto">
                                 <InputLabel id="physician-name-label">Physician Name</InputLabel>
                                 <Select
                                     labelId="physician-name-label"
@@ -214,8 +221,8 @@ const ScheduleAppointment = () => {
                                         </MenuItem>
                                     ))}
                                 </Select>
-                            </FormControl>
-                            <FormControl className="w-full sm:w-auto">
+                            </FullWidthFormControl>
+                            <FullWidthFormControl className="w-full sm:w-auto">
                                 <InputLabel id="shift-type-label">Shift Type</InputLabel>
                                 <Select
                                     labelId="shift-type-label"
@@ -229,7 +236,7 @@ const ScheduleAppointment = () => {
                                     <MenuItem value="Day">Day</MenuItem>
                                     <MenuItem value="Night">Night</MenuItem>
                                 </Select>
-                            </FormControl>
+                            </FullWidthFormControl>
                             <DatePicker
                                 label="Date"
                                 value={date}

@@ -11,6 +11,14 @@ const navigate = useNavigate()
         <button className="option-button" onClick={() => navigate('/addStaff')}>Add New Staff</button>
         <button className="option-button" onClick={() => navigate('/view_staff')}>View-Modify Staff Information</button>
       </div>
+      <div className="mt-4 md:mt-6">
+        <button 
+          variant="outlined"
+          onClick={() => navigate('/home')}
+        >
+          Back to Home
+        </button>
+      </div>
     </div>
   );
 }

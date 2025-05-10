@@ -11,7 +11,7 @@ const navigate = useNavigate()
         <button className="option-button" onClick={() => navigate('/view_room')}>View Room Details</button>
         {/* <button className="option-button">View scheduled surgery per patient</button> */}
         <button className="option-button" onClick={() => navigate('/scheduled_surgery')}>View scheduled surgeries</button>
-        <button className="option-button">Book a Surgery</button>
+        <button className="option-button" onClick={() => navigate('/schedule_a_surgery')}>Book a Surgery</button>
 
       </div>
 

@@ -17,6 +17,7 @@ import SchedulePerDay from './components/patient_management/schedule_per_day';
 import SchedulePerDoctor from './components/patient_management/schedule_per_doctor';
 import ScheduleAppointment from './components/patient_management/schedule_appointment';
 import ScheduledSurgery from './components/inpatient_management/scheduled_surgery';
+import ScheduleSurgery from './components/inpatient_management/schedule_surgery';
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const App = () => {
         <Route path='/schedule_per_doctor' element={<SchedulePerDoctor />} />
         <Route path='/schedule_appointment' element={<ScheduleAppointment />} />
         <Route path='/scheduled_surgery' element={<ScheduledSurgery />} />
+        <Route path='/schedule_a_surgery' element={<ScheduleSurgery />} />
       </Routes>
     </Router>
   );
