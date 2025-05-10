@@ -24,9 +24,11 @@ const AddStaff = () => {
   const [personnelType, setPersonnelType] = useState('');
   const [isChiefOfStaff, setIsChiefOfStaff] = useState(false);
   const [jobShift, setJobShift] = useState('');
-  const [yearsOfExperience, setYearsOfExperience] = useState('');
+  const [yearsOfExperience, setyearsOfExperience] = useState('');
   const [contractEndDate, setContractEndDate] = useState('');
   const [Speciality, setSpeciality] = useState('');
+  const [Salary, setSalary] = useState('');
+  const [Grade, setGrade] = useState('');
 
   const navigate = useNavigate();
 
@@ -45,13 +47,24 @@ const AddStaff = () => {
       Job_Shift: jobShift,
       Contract_End_Date: contractEndDate,
       Years_Of_Experience:yearsOfExperience,
+      Speciality:Speciality,
+      Salary:Salary,
+      Grade:Grade,
     };
 
     // Add conditional fields based on personnel type
     if (personnelType === 'Surgeon') {
       payload.Contract_End_Date = contractEndDate;
-    } else if (personnelType === 'Nurse' || personnelType === 'Physician') {
+      payload.Speciality = Speciality;
+
+    } else if (personnelType === 'Physician') {
+      payload.Speciality = Speciality;
+      payload.Salary = Salary;
+
+    }else if (personnelType === 'Nurse' || personnelType === 'Physician') {
       payload.Years_Of_Experience = yearsOfExperience;
+      payload.Speciality = Speciality;
+      payload.Salary = Salary;
     }
 
     try {
@@ -204,18 +217,61 @@ const AddStaff = () => {
             </>
           )}
 
-          {personnelType === 'Nurse' || personnelType === 'Physician' ? (
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Years of Experience"
-                variant="outlined"
-                value={yearsOfExperience}
-                onChange={(e) => setYearsOfExperience(e.target.value)}
-              />
-            </Grid>
-          ) : null}
+          {personnelType === 'Physician' ? (
+           <>
+           <Grid item xs={12} sm={6}>
+             <TextField
+               fullWidth
+               label="Speciality"
+               variant="outlined"
+               value={Speciality}
+               onChange={(e) => setSpeciality(e.target.value)}
+             />
+           </Grid>
 
+           <Grid item xs={12} sm={6}>
+             <TextField
+               fullWidth
+               label="Salary"
+               variant="outlined"
+               value={Salary}
+               onChange={(e) => setSalary(e.target.value)}
+             />
+           </Grid>
+         </>
+          ) : null}
+          {personnelType === 'Nurse' ? (
+           <>
+           <Grid item xs={12} sm={6}>
+             <TextField
+               fullWidth
+               label="Grade"
+               variant="outlined"
+               value={Grade}
+               onChange={(e) => setGrade(e.target.value)}
+             />
+           </Grid>
+
+           <Grid item xs={12} sm={6}>
+             <TextField
+               fullWidth
+               label="yearsOfExperience"
+               variant="outlined"
+               value={yearsOfExperience}
+               onChange={(e) => setyearsOfExperience(e.target.value)}
+             />
+           </Grid>
+           <Grid item xs={12} sm={6}>
+             <TextField
+               fullWidth
+               label="Salary"
+               variant="outlined"
+               value={Salary}
+               onChange={(e) => setSalary(e.target.value)}
+             />
+           </Grid>
+         </>
+          ) : null}
           {/* Submit Button */}
           <Grid item xs={12}>
             <Button variant="contained" color="primary" type="submit" fullWidth>

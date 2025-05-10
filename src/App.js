@@ -13,6 +13,11 @@ import InsertPatient from './components/patient_management/insert_patient';
 import PreviousDiagnosis from './components/patient_management/previous_diagnosis';
 import InPatientManagement from './components/inpatient';
 import ViewRoom from './components/inpatient_management/view_room';
+import ViewInpatient from './components/inpatient_management/view_inpatient';
+import AddRemoveRoom from './components/inpatient_management/add_remove_room';
+import AddRemoveNurse from './components/inpatient_management/add_remove_nurse';
+import AddRemoveDoctor from './components/inpatient_management/add_remove_doctor';
+
 import SchedulePerDay from './components/patient_management/schedule_per_day';
 import SchedulePerDoctor from './components/patient_management/schedule_per_doctor';
 import ScheduleAppointment from './components/patient_management/schedule_appointment';
@@ -35,6 +40,10 @@ const App = () => {
         <Route path='/addStaff' element={<AddStaff />} />
         <Route path='/inpatient' element={<InPatientManagement />} />
         <Route path='/view_room' element={<ViewRoom />} />
+        <Route path='/view_inpatient' element={<ViewInpatient />} />
+        <Route path='/add_remove_room/:id' element={<AddRemoveRoom />} />
+        <Route path='/add_remove_nurse/:id' element={<AddRemoveNurse />} />
+        <Route path='/add_remove_doctor/:id' element={<AddRemoveDoctor />} />
 
 
         <Route path='/insert_patient' element={<InsertPatient />} />

@@ -124,8 +124,8 @@ const EditAddShift = () => {
         <div className="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             <Paper elevation={3} className="p-6">
                 <Typography variant="h5" className="mb-4 font-semibold text-gray-800">
-                    Staff Information
-                </Typography>
+                    Staff Information 
+                </Typography> <br></br>
                 <Typography><strong>Name:</strong> {staff.Name}</Typography>
                 <Typography><strong>Employee ID:</strong> {staff.Employee_ID}</Typography>
                 <Typography><strong>SSN:</strong> {staff.SSN}</Typography>
@@ -133,7 +133,7 @@ const EditAddShift = () => {
                 <Typography><strong>Address:</strong> {staff.Address}</Typography>
                 <Typography><strong>Phone Number:</strong> {staff.Phone_Number}</Typography>
                 <Typography><strong>Personnel Type:</strong> {staff.Personnel_Type}</Typography>
-                <Typography><strong>Chief of Staff:</strong> {staff.Is_Chief_Of_Staff ? 'Yes' : 'No'}</Typography>
+                <Typography><strong>Chief of Staff:</strong> {staff.Is_Chief_Of_Staff ? 'Yes' : 'No'}</Typography><br></br><br></br>
 
                 <Typography variant="h6" className="mt-6 mb-2 font-semibold text-gray-800">
                     <b>Add Shift</b>
@@ -157,7 +157,6 @@ const EditAddShift = () => {
                     onChange={(e) => setNewShift(e.target.value)}
                     margin="normal"
                     size="small"
-                    fullWidth
                 >
                     {shiftOptions.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -170,7 +169,7 @@ const EditAddShift = () => {
                     <strong>Selected Date:</strong> {selectedDate.toDateString()}
                 </Typography>
                 <Typography>
-                    <strong>Selected Shift:</strong> {newShift || 'N/A'}
+                    <strong>Selected Shift:</strong> {newShift || 'N/A'} 
                 </Typography>
 
                 <div className="flex gap-4 mt-4">
@@ -183,8 +182,8 @@ const EditAddShift = () => {
                         {saving ? 'Saving...' : 'Save Shift'}
                     </Button>
                     <Button variant="outlined" onClick={() => navigate('/view_staff')}>
-                        Cancel
-                    </Button>
+                        Cancel 
+                    </Button> <br></br><br></br><br></br><br></br>
                 </div>
             </Paper>
 
@@ -232,7 +231,7 @@ const EditAddShift = () => {
             </Paper>
 
             <div className="mt-4 md:mt-6">
-                <Button variant="outlined" onClick={() => navigate('/staff')}>
+                <Button variant="outlined" onClick={() => navigate('/view_staff')}>
                     Back to Staff Management
                 </Button>
             </div>
