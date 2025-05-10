@@ -9,6 +9,7 @@ const navigate = useNavigate()
       <h1 className="page-title">InPatient Management</h1>
       <div className="options-grid">
         <button className="option-button" onClick={() => navigate('/view_room')}>View Room Details</button>
+        <button className="option-button" onClick={() => navigate('/view_inpatient')}>View InPatient Details</button>
         <button className="option-button">View scheduled surgery per patient</button>
       </div>
 
