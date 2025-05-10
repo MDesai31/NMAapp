@@ -153,7 +153,7 @@ CREATE TABLE In_patient (
     Room_No INT,
     Bed_No VARCHAR(1),
     Wing VARCHAR(10),
-    PRIMARY KEY (Patient_ID, Nurse_ID),
+    PRIMARY KEY (Patient_ID),
     FOREIGN KEY (Patient_ID) REFERENCES Patient(Patient_ID),
     FOREIGN KEY (Nurse_ID) REFERENCES Nurse(Nurse_ID),
     FOREIGN KEY (Wing, Bed_No, Room_No) REFERENCES Room_Arrangement(Wing, Bed_No, Room_No)
