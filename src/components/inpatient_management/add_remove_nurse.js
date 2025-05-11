@@ -135,7 +135,6 @@ const AddRemoveNurse = () => {
                                 <TableCell>Name</TableCell>
                                 <TableCell>Grade</TableCell>
                                 <TableCell>YOE</TableCell>
-                                <TableCell>Specialities</TableCell>
                                 <TableCell>Action</TableCell>
                             </TableRow>
                         </TableHead>
@@ -146,7 +145,6 @@ const AddRemoveNurse = () => {
                                     <TableCell>{nurse.Name}</TableCell>
                                     <TableCell>{nurse.Grade}</TableCell>
                                     <TableCell>{nurse.YOE}</TableCell>
-                                    <TableCell>{nurse.Specialities}</TableCell>
 
                                     <TableCell>
                                         <Button
@@ -184,7 +182,7 @@ const AddRemoveNurse = () => {
                                 key={nurse.Nurse_ID}
                                 value={nurse.Nurse_ID}
                             >
-                               (Name: {nurse.Name} ) (ID: {nurse.Nurse_ID}) (AvailableSlot: {nurse.AvailableSlot}) (Specialities: {nurse.Specialities})
+                               (Name: {nurse.Name} ) (ID: {nurse.Nurse_ID}) (AvailableSlot: {nurse.AvailableSlot}))
                             </MenuItem>
                         ))}
                     </Select>
