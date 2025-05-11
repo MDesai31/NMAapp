@@ -1,9 +1,12 @@
 #Setup instructions
-npm install express body-parser mysql2 axios react-router-dom bcrypt cors jsonwebtoken
+npm install express body-parser mysql2 axios react-router-dom bcrypt cors jsonwebtoken @mui/lab @mui/material dayjs
+
 npx create-react-app client
 
 To run:
+
 server: node server.js
+
 react app: npm start
 
 # Getting Started with Create React App
