@@ -382,15 +382,12 @@ app.get('/api/inpatients/:id/nurses', (req, res) => {
     const Patient_ID = req.params.id;
 
     const sql = `
-        SELECT N.Nurse_ID, q.Name, N.Grade, N.YOE, 
-       GROUP_CONCAT(DISTINCT S.Name SEPARATOR ', ') AS Specialities
-FROM Nurse N
-JOIN personnel q ON N.Employee_ID = q.Employee_ID
-JOIN in_patient I ON I.Nurse_ID = N.Nurse_ID
-JOIN nurse_surgery_skills R ON N.Nurse_ID = R.Nurse_ID
-JOIN surgery S ON R.Surgery_ID = S.Surgery_ID
-WHERE I.Patient_ID = ?
-GROUP BY N.Nurse_ID, q.Name, N.Grade, N.YOE
+        SELECT N.Nurse_ID, q.Name, N.Grade, N.YOE 
+        FROM Nurse N
+        JOIN personnel q ON N.Employee_ID = q.Employee_ID
+        JOIN in_patient I ON I.Nurse_ID = N.Nurse_ID
+        WHERE I.Patient_ID = ?
+        GROUP BY N.Nurse_ID, q.Name, N.Grade, N.YOE
     `;
 
     db.query(sql, [Patient_ID], (err, results) => {
@@ -414,7 +411,6 @@ app.get('/api/nurses', (req, res) => {
                q.Name, 
                P.Grade, 
                P.YOE, 
-               GROUP_CONCAT(DISTINCT S.Name SEPARATOR ', ') AS Specialities, 
                7 - IFNULL((
                    SELECT COUNT(*) 
                    FROM in_patient I  
@@ -422,9 +418,7 @@ app.get('/api/nurses', (req, res) => {
                    GROUP BY I.Nurse_ID
                ), 0) AS AvailableSlot 
         FROM Nurse P 
-        JOIN personnel q ON P.Employee_ID = q.Employee_ID 
-        JOIN nurse_surgery_skills R ON P.Nurse_ID = R.Nurse_ID 
-        JOIN surgery S ON R.Surgery_ID = S.Surgery_ID 
+        JOIN personnel q ON P.Employee_ID = q.Employee_ID  
         GROUP BY P.Nurse_ID, q.Name, P.Grade, P.YOE;
     `, (err, results) => {
         if (err) {
@@ -521,7 +515,7 @@ app.get('/api/doctors', (req, res) => {
     q.Name, 
     q.phone_number, 
     P.Specialty,
-    7 - IFNULL((
+    20 - IFNULL((
         SELECT COUNT(*) 
         FROM patient I  
         WHERE I.Primary_Physician_ID = P.Physician_ID
