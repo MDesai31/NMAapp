@@ -98,7 +98,7 @@ const SchedulePerDay = () => {
                             {physicianSchedule.map((schedule) => (
                                 <TableRow key={schedule.Employee_ID}>
                                     <TableCell>{schedule.Employee_ID}</TableCell>
-                                    <TableCell>{schedule.ame}</TableCell>
+                                    <TableCell>{schedule.Name}</TableCell>
                                     <TableCell>{schedule.shift_type}</TableCell>
                                 </TableRow>
                             ))}

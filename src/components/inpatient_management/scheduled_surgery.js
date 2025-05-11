@@ -7,7 +7,6 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    FormHelperText,
 } from '@mui/material';
 import {
     Table,
@@ -20,7 +19,6 @@ import {
 import { Paper } from '@mui/material';
 import { Alert, AlertTitle } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import { DateFnsUtils } from '@mui/lab'; // Import the DateFns adapter
 import { format } from 'date-fns';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { styled } from '@mui/material/styles'; // Import styled
@@ -31,6 +29,14 @@ const FullWidthFormControl = styled(FormControl)({
     minWidth: '200px', // Ensure it has a minimum width
 });
 
+// Helper function to get operation theaters
+const getOperationTheaters = () => {
+    return [
+        { id: 'OT-101', name: 'Operating Theater 101' },
+        { id: 'OT-102', name: 'Operating Theater 102' },
+        { id: 'OT-103', name: 'Operating Theater 103' },
+    ];
+};
 
 const ScheduledSurgery = () => {
     const [date, setDate] = useState(null);
@@ -41,6 +47,7 @@ const ScheduledSurgery = () => {
     const [error, setError] = useState(null);
     const [surgeons, setSurgeons] = useState([]); // For Surgeon dropdown
     const navigate = useNavigate();
+    const [operationTheater, setOperationTheater] = useState('');
 
     // Fetch surgeons for the dropdown
     useEffect(() => {
@@ -70,7 +77,7 @@ const ScheduledSurgery = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:9000/api/surgerySchedule?date=${formattedDate}&surgeonName=${surgeonName}&patientName=${patientName}`
+                `http://localhost:9000/api/surgerySchedule?date=${formattedDate}&surgeonName=${surgeonName}&patientName=${patientName}&operationTheater=${operationTheater}`
             );
             if (!response.ok) {
                 throw new Error('Failed to fetch surgery schedule.');
@@ -91,7 +98,7 @@ const ScheduledSurgery = () => {
 
     useEffect(() => {
         setSurgerySchedule([]);
-    }, [date, surgeonName, patientName]);
+    }, [date, surgeonName, patientName, operationTheater]);
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -132,6 +139,23 @@ const ScheduledSurgery = () => {
                         className="w-full sm:w-auto"
                         placeholder="Enter patient name"
                     />
+                    <FullWidthFormControl className="w-full sm:w-auto">
+                        <InputLabel id="operation-theater-label">Operation Theater</InputLabel>
+                        <Select
+                            labelId="operation-theater-label"
+                            id="operation-theater-select"
+                            value={operationTheater}
+                            onChange={(e) => setOperationTheater(e.target.value)}
+                            label="Operation Theater"
+                        >
+                            <MenuItem value="">All Theaters</MenuItem>
+                            {getOperationTheaters().map((theater) => (
+                                <MenuItem key={theater.id} value={theater.id}>
+                                    {theater.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FullWidthFormControl>
                     <Button onClick={handleSearch} variant="contained" disabled={loading} className="w-full sm:w-auto">
                         {loading ? 'Loading...' : 'Search'}
                     </Button>
@@ -152,6 +176,7 @@ const ScheduledSurgery = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell className="font-bold">Surgery ID</TableCell>
+                                    <TableCell className="font-bold">Surgery Name</TableCell>
                                     <TableCell className="font-bold">Patient Name</TableCell>
                                     <TableCell className="font-bold">Surgeon Name</TableCell>
                                     <TableCell className="font-bold">Nurse Names</TableCell>
@@ -163,6 +188,7 @@ const ScheduledSurgery = () => {
                                 {surgerySchedule.map((surgery) => (
                                     <TableRow key={surgery.Surgery_ID}>
                                         <TableCell>{surgery.Surgery_ID}</TableCell>
+                                        <TableCell>{surgery.Name}</TableCell>
                                         <TableCell>{surgery.Patient_Name}</TableCell>
                                         <TableCell>{surgery.Surgeon_Name}</TableCell>
                                         <TableCell>{surgery.Nurse_Names}</TableCell>

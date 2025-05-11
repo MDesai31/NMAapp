@@ -18,37 +18,6 @@ const db = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
 });
 
-// --------------------------- AUTH ROUTES ---------------------------
-
-app.post('/register', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const sql = "INSERT INTO authentication (username, password) VALUES (?, ?)";
-        db.query(sql, [username, hashedPassword], (err) => {
-            if (err) return res.status(500).send(err);
-            res.send("User registered successfully.");
-        });
-    } catch (err) {
-        res.status(500).send("Error hashing password.");
-    }
-});
-
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    const sql = "SELECT * FROM authentication WHERE username = ?";
-
-    db.query(sql, [username], async (err, results) => {
-        if (err) return res.status(500).send(err);
-        if (results.length === 0) return res.status(400).send("Invalid username!");
-
-        const match = await bcrypt.compare(password, results[0].password);
-        if (!match) return res.status(401).send("Invalid password");
-
-        res.json({ message: "Login successful" });
-    });
-});
-
 // --------------------------- PATIENT ROUTES ---------------------------
 
 app.get('/api/patients', (req, res) => {
@@ -624,18 +593,20 @@ app.put('/api/inpatients/:id/adddoctor', async (req, res) => {
         if (results.affectedRows === 0) {
             return res.status(404).send("Doctor Not Added for Inpatient");
         }
-    db.query(deleteQuery2, [Patient_ID, Primary_Physician_ID], (err, results) => {
-        if (err) {
-            console.error('Database error (inpatient_nurse):', err);
-            return res.status(500).send(err);
-        }
+        db.query(deleteQuery2, [Patient_ID, Primary_Physician_ID], (err, results) => {
+            if (err) {
+                console.error('Database error (inpatient_nurse):', err);
+                return res.status(500).send(err);
+            }
 
-        if (results.affectedRows === 0) {
-            return res.status(404).send("Doctor Not Added for Inpatient");
-        }
-        res.status(200).send("Doctor successfully Added from inpatient.");
+            if (results.affectedRows === 0) {
+                return res.status(404).send("Doctor Not Added for Inpatient");
+            }
+            res.status(200).send("Doctor successfully Added from inpatient.");
+        });
     });
 });
+
 // API endpoint to get physician schedule per day
 app.get('/api/schedule/physicians/:date', async (req, res) => {
     const { date } = req.params;
@@ -698,6 +669,7 @@ app.get('/api/schedule/doctorName/:doctorName', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch doctor schedule', details: error.message });
     }
 });
+
 // API endpoint to get all physicians
 app.get('/api/physicians', async (req, res) => {
     try {
@@ -869,6 +841,7 @@ app.post('/api/appointments', async (req, res) => {
 
 // API endpoint to get surgeons
 app.get('/api/surgeons', async (req, res) => {
+    console.log("reaches here")
     try {
         const query = `
             SELECT
@@ -882,6 +855,7 @@ app.get('/api/surgeons', async (req, res) => {
             if(err){
                 console.log(err)
             }
+            console.log(results)
             res.json(results);
         });
     } catch (error) {
@@ -891,23 +865,25 @@ app.get('/api/surgeons', async (req, res) => {
 
 // API endpoint to get surgery schedule with filtering
 app.get('/api/surgerySchedule', async (req, res) => {
-    const { date, surgeonName, patientName } = req.query;
+    const { date, surgeonName, patientName, operationTheater } = req.query;
 
     let query = `
         SELECT
             s.Surgery_ID,
+            ss.Name,
             p.Name AS Patient_Name,
             per.Name AS Surgeon_Name,
-            GROUP_CONCAT(pers.Name SEPARATOR ', ') AS Nurse_Names,  -- Changed to pers.Name
+            GROUP_CONCAT(pers.Name SEPARATOR ', ') AS Nurse_Names,
             s.Date,
             s.Operation_theatre
         FROM Surgery_Schedule s
         JOIN Patient p ON s.Patient_ID = p.Patient_ID
         JOIN Surgeon sur ON s.Surgeon_ID = sur.Surgeon_ID
         JOIN Personnel per ON sur.Employee_id = per.Employee_ID
+        JOIN Surgery ss ON s.Surgery_ID = ss.Surgery_ID
         LEFT JOIN Assist_Surgery ass ON s.Schedule_ID = ass.Schedule_ID
         LEFT JOIN Nurse n ON ass.Nurse_ID = n.Nurse_ID  
-        LEFT JOIN Personnel pers ON n.Employee_id = pers.Employee_ID -- Join Personnel to get Nurse Name
+        LEFT JOIN Personnel pers ON n.Employee_id = pers.Employee_ID
         WHERE 1=1
     `;
     const params = [];
@@ -923,6 +899,10 @@ app.get('/api/surgerySchedule', async (req, res) => {
     if (patientName) {
         query += ' AND p.Name = ?';
         params.push(patientName);
+    }
+    if (operationTheater) {
+        query += ' AND s.Operation_theatre = ?';
+        params.push(operationTheater);
     }
 
     query += ' GROUP BY s.Schedule_ID';
@@ -1118,8 +1098,6 @@ app.post('/api/schedule-a-surgery', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Failed to schedule surgery' });
     }
-});
-
 });
 // --------------------------- SERVER START ---------------------------
 
